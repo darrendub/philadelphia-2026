@@ -70,7 +70,11 @@ body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;bac
 
 /* day */
 .day{padding-top:30px;scroll-margin-top:calc(70px + env(safe-area-inset-top,0px))}
-.dayhead{font-size:2rem;font-weight:700;letter-spacing:-.02em;line-height:1.1;margin:0 0 14px}
+.dayhead{font-size:2rem;font-weight:700;letter-spacing:-.02em;line-height:1.1;margin:0 0 6px}
+.tnow{display:inline-block;vertical-align:middle;margin-left:10px;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:var(--on-accent);background:var(--accent);border-radius:999px;padding:4px 10px;position:relative;top:-2px}
+.wx{color:var(--muted);font-size:.92rem;margin:0 0 14px}
+.dayhead + .tl,.dayhead + .empty{margin-top:14px}
+.tr.past .tm,.tr.past .ic{opacity:.5}
 .stack{display:grid;gap:10px}
 .empty{color:var(--muted);border:1px dashed var(--line);border-radius:16px;padding:16px;font-size:.92rem}
 
@@ -146,6 +150,7 @@ html.locked,html.locked body{overflow:hidden;overscroll-behavior:none;height:100
 .frow span{font-size:1rem}
 .frow input,.frow textarea{font-size:1rem;background:transparent;border:0;outline:0;color:var(--fg);min-width:0}
 .frow input[type=text]{width:100%;padding:14px 0;font-weight:600}
+.frow input#f-loc{font-weight:400}
 .frow input[type=text]::placeholder,.frow textarea::placeholder{color:var(--muted);font-weight:400}
 .frow input[type=date],.frow input[type=time]{font-family:inherit;color:var(--fg);background:var(--glass);border-radius:10px;padding:6px 10px;min-height:36px}
 .frow textarea{width:100%;padding:14px 0;resize:none;min-height:110px;font-family:inherit}
@@ -357,6 +362,11 @@ html.locked,html.locked body{overflow:hidden;overscroll-behavior:none;height:100
     if(isF){
       var d=(i._arr&&i._dep)?dur(i._arr-i._dep):'';
       det.append(h('div',{class:'when'},[i.flight,d?d+' in the air':''].filter(Boolean).join(' · ')));
+      var dd=DAYS.filter(function(x){return x.id===i.day})[0];
+      var fshare=[i.flight,dd?dd.dow+' Nov '+dd.n:'',i.from+' to '+i.to].filter(Boolean).join(' ');
+      det.append(h('div',{class:'links'},
+        h('a',{href:'https://www.google.com/search?q='+encodeURIComponent(i.flight+' flight status '+(dd?'Nov '+dd.n:'')),target:'_blank',rel:'noopener'},'Flight status'),
+        h('a',{href:'#',onclick:function(e){e.preventDefault();shareText(fshare)}},'Share')));
     }else{
       if(i.time)det.append(h('div',{class:'when'},fmt(i.time)+(i.endTime?' to '+fmt(i.endTime):'')));
       var where=[i.place,i.address].filter(Boolean).join(' · ');
@@ -369,6 +379,44 @@ html.locked,html.locked body{overflow:hidden;overscroll-behavior:none;height:100
     det.append(h('div',{class:'row'},h('button',{type:'button',class:'pill',onclick:function(){openSheet(i)}},'Edit')));
     return det;
   }
+  function shareText(t){
+    if(navigator.share){navigator.share({text:t}).catch(function(){});return}
+    try{navigator.clipboard.writeText(t).then(function(){toast('Copied: '+t)},function(){toast(t)})}catch(e){toast(t)}
+  }
+  var TODAY_FMT=new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York'});
+  function todayId(){return TODAY_FMT.format(new Date())}
+  function isPast(i){
+    var now=Date.now(),t=todayId();
+    if(i.area==='flight'&&i._arr)return i._arr<now;
+    var end=ep(i.day,i.endTime||'',i.utc);
+    if(end==null){var st=ep(i.day,i.time||'',i.utc);end=st==null?null:st+3600000}
+    if(end==null)return i.day<t;
+    return end<now;
+  }
+  var wx={};
+  var WXC={0:'Clear',1:'Mostly clear',2:'Partly cloudy',3:'Cloudy',45:'Fog',48:'Fog',51:'Light drizzle',53:'Drizzle',55:'Drizzle',56:'Freezing drizzle',57:'Freezing drizzle',61:'Light rain',63:'Rain',65:'Heavy rain',66:'Freezing rain',67:'Freezing rain',71:'Light snow',73:'Snow',75:'Heavy snow',77:'Snow grains',80:'Showers',81:'Showers',82:'Heavy showers',85:'Snow showers',86:'Snow showers',95:'Thunderstorms',96:'Thunderstorms',99:'Thunderstorms'};
+  function wxLine(id){
+    var w=wx[id];if(!w)return null;
+    var parts=[Math.round(w.hi)+'° / '+Math.round(w.lo)+'°',WXC[w.code]||''];
+    if(w.pop>=20)parts.push(Math.round(w.pop)+'% chance');
+    return h('div',{class:'wx'},parts.filter(Boolean).join(' · '));
+  }
+  function loadWeather(){
+    try{var c=JSON.parse(localStorage.getItem('philly26-wx')||'null');if(c&&Date.now()-c.ts<3*3600000){wx=c.wx;renderDays()}}catch(e){}
+    fetch('https://api.open-meteo.com/v1/forecast?latitude=39.96&longitude=-75.61&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&temperature_unit=fahrenheit&timezone=America%2FNew_York&forecast_days=16')
+      .then(function(r){return r.json()}).then(function(d){
+        if(!d||!d.daily)return;var o={};
+        d.daily.time.forEach(function(day,k){if(DAYS.some(function(x){return x.id===day}))o[day]={hi:d.daily.temperature_2m_max[k],lo:d.daily.temperature_2m_min[k],pop:d.daily.precipitation_probability_max[k]||0,code:d.daily.weather_code[k]}});
+        if(Object.keys(o).length){wx=o;try{localStorage.setItem('philly26-wx',JSON.stringify({ts:Date.now(),wx:o}))}catch(e){}renderDays()}
+      }).catch(function(){});
+  }
+  var didScroll=false;
+  function scrollToToday(){
+    if(didScroll||!loaded)return;
+    var el=document.getElementById('day-'+todayId());
+    didScroll=true;
+    if(el)window.scrollTo(0,Math.max(0,el.getBoundingClientRect().top+window.scrollY-72));
+  }
   function itemRow(i){
     var isF=i.area==='flight'&&i.from&&i.to,open=openId===i.id;
     var card=h('div',{class:'item','data-open':open?'1':'0'});
@@ -376,7 +424,7 @@ html.locked,html.locked body{overflow:hidden;overscroll-behavior:none;height:100
       chevIcon(),h('span',{class:'itext'},h('span',{class:'ititle'},i.title),isF?flightSub(i):null,whoRow(i.who)));
     card.append(head,details(i,isF));
     var node=isF?h('div',{class:'nd pl'},planeIcon()):h('div',{class:'nd'},h('i'));
-    return h('div',{class:'tr',style:'--c:var('+(isF?'--a-flight':'--accent')+')'},
+    return h('div',{class:'tr'+(isPast(i)?' past':''),style:'--c:var('+(isF?'--a-flight':'--accent')+')'},
       h('div',{class:'tm'},i.time?fmt(i.time):h('span',{class:'any'},'Anytime')),
       node,
       h('div',{class:'ic'},card));
@@ -395,10 +443,12 @@ html.locked,html.locked body{overflow:hidden;overscroll-behavior:none;height:100
         list.forEach(function(i){body.append(itemRow(i))});
       }
       main.append(h('section',{class:'day',id:'day-'+d.id,'data-day':d.id},
-        h('h2',{class:'dayhead'},d.long+', Nov '+d.n),
+        h('h2',{class:'dayhead'},d.long+', Nov '+d.n,d.id===todayId()?h('span',{class:'tnow'},'Today'):null),
+        wxLine(d.id),
         body));
     });
     observeDays();
+    scrollToToday();
   }
   var io=null;
   function observeDays(){
@@ -440,6 +490,8 @@ html.locked,html.locked body{overflow:hidden;overscroll-behavior:none;height:100
     var title=h('input',{id:'f-title',type:'text',placeholder:'Event title',autocomplete:'off',autocapitalize:'sentences',enterkeyhint:'next','aria-label':'Event title',value:item?(item.title||''):''});
     var date=h('input',{id:'f-date',type:'date',min:DAYS[0].id,max:DAYS[DAYS.length-1].id,'aria-label':'Date',value:item&&item.day||activeDay});
     var tm=h('input',{id:'f-time',type:'time','aria-label':'Time',value:item&&item.time||''});
+    var loc=h('input',{id:'f-loc',type:'text',placeholder:'Location (optional)',autocomplete:'off','aria-label':'Location',value:item?(item.place||item.address||''):''});
+    var loc0=loc.value;
     var notes=h('textarea',{id:'f-notes',rows:'4',placeholder:'Description (optional)','aria-label':'Description'});notes.value=item&&item.notes||'';
     var save=h('button',{type:'submit',class:'nbtn done','aria-label':isNew?'Add':'Save'},svg('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>'));
     function sync(){save.disabled=!title.value.trim()}
@@ -457,6 +509,7 @@ html.locked,html.locked body{overflow:hidden;overscroll-behavior:none;height:100
       var tt=title.value.trim();if(!tt){title.focus();return}
       var d=date.value;if(!DAYS.some(function(x){return x.id===d}))d=activeDay;
       var data={title:tt,day:d,time:tm.value,notes:notes.value.trim(),who:who.slice()};
+      var lv=loc.value.trim();if(isNew||lv!==loc0){data.place=lv;data.address=''}
       activeDay=d;close();
       if(isNew){addItem(data).then(function(ok){if(ok)toast('Added')})}else updateItem(item.id,data);
     }
@@ -468,8 +521,9 @@ html.locked,html.locked body{overflow:hidden;overscroll-behavior:none;height:100
         h('div',{class:'grp'},
           h('label',{class:'frow',for:'f-date'},h('span',null,'Date'),date),
           h('label',{class:'frow',for:'f-time'},h('span',null,'Time'),tm)),
+        h('div',{class:'grp'},h('div',{class:'frow'},loc)),
         h('div',{class:'grp'},h('div',{class:'frow'},notes)),
-        h('div',{class:'grp whog'},h('div',{class:'wl'},'Who'),whoBox),
+        h('div',{class:'grp whog'},h('div',{class:'wl'},'Who (Optional)'),whoBox),
         delBtn?h('div',{class:'grp'},delBtn):null));
     var scrim=h('div',{class:'scrim',onkeydown:function(e){if(e.key==='Escape')close()}},form);
     layer.replaceChildren(scrim);
@@ -481,7 +535,7 @@ html.locked,html.locked body{overflow:hidden;overscroll-behavior:none;height:100
   /* start */
   try{var c=JSON.parse(localStorage.getItem(CACHE_KEY)||'null');if(Array.isArray(c)&&c.length){items=c;loaded=true}}catch(e){}
   function boot(){
-    buildBar();render();
+    buildBar();render();loadWeather();
     if(LIVE()){
       refresh();
       setInterval(function(){if(!document.hidden)refresh()},20000);
