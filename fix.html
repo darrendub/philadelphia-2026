@@ -10,7 +10,7 @@ button:disabled{opacity:.4}
 pre{background:#151923;border-radius:16px;padding:14px;white-space:pre-wrap;font-size:.85rem;margin-top:18px;min-height:3em}
 </style></head><body>
 <h1>Apply sheet updates</h1>
-<p>One tap makes these changes in the Itinerary tab: Maya's two flights go to Maya only, and Emma's own two flights are added.</p>
+<p>One tap makes this change in the Itinerary tab: Emma joins Maya on AA 2553 (8:30 AM to 4:54 PM) and her separate copy of that flight is removed.</p>
 <button id="go">Apply updates</button>
 <pre id="log">Ready.</pre>
 <script src="config.js"></script>
@@ -18,13 +18,10 @@ pre{background:#151923;border-radius:16px;padding:14px;white-space:pre-wrap;font
 var API=window.TRIP_CONFIG.apiUrl,log=document.getElementById('log'),btn=document.getElementById('go');
 function say(t){log.textContent+='\n'+t}
 var UPDATES=[
-  {id:'f-as834',patch:{who:['Maya']}},
-  {id:'f-aa2553',patch:{who:['Maya']}}
+  {id:'f-aa2553',patch:{who:['Maya','Emma']}}
 ];
-var ADDS=[
-  {id:'f-aa2553-emma',area:'flight',flight:'AA 2553',title:'San Francisco to Philadelphia',from:'SFO',to:'PHL',day:'2026-11-13',time:'06:30',arrDay:'2026-11-13',arrTime:'14:47',utc:-8,arrUtc:-5,who:['Emma']},
-  {id:'f-aa2407',area:'flight',flight:'AA 2407',title:'Philadelphia to San Francisco',from:'PHL',to:'SFO',day:'2026-11-17',time:'08:45',arrDay:'2026-11-17',arrTime:'12:06',utc:-5,arrUtc:-8,who:['Emma']}
-];
+var ADDS=[];
+var DELETES=['f-aa2553-emma'];
 function list(){return fetch(API+'?action=list&t='+Date.now()).then(function(r){return r.json()})}
 function post(b){return fetch(API,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(b)})}
 btn.onclick=async function(){
@@ -38,10 +35,14 @@ btn.onclick=async function(){
     for(var a of ADDS){
       if(have[a.id])say('Already there: '+a.id);else{await post({action:'add',item:a});say('Added '+a.id)}
     }
+    for(var x of DELETES){
+      if(have[x]){await post({action:'delete',id:x});say('Removed '+x)}else say('Already gone: '+x);
+    }
     await new Promise(function(r){setTimeout(r,2500)});
     var after=await list(),bad=0;
     UPDATES.forEach(function(u){var i=after.items.find(function(x){return x.id===u.id});if(i&&i.who.join()!==u.patch.who.join()){bad++;say('Check '+u.id+': who is '+i.who.join()+' ')}});
     ADDS.forEach(function(a){if(!after.items.some(function(x){return x.id===a.id})){bad++;say('Missing '+a.id)}});
+    DELETES.forEach(function(id){if(after.items.some(function(x){return x.id===id})){bad++;say('Still there: '+id)}});
     say(bad?'Some changes are not showing yet. Wait a few seconds and tap again.':'Done. Everything checks out.');
   }catch(e){say('Problem: '+e.message)}
   btn.disabled=false;
