@@ -255,20 +255,41 @@ html.locked,html.locked body{overflow:hidden;overscroll-behavior:none;height:100
     /* no-cors: Safari blocks reading Apps Script replies after its redirect, but the write still runs. We confirm by reading the sheet back. */
     return fetchT(API,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)}).then(function(){return{ok:true}});
   }
+  var recent={};
+  function noteRecent(body){
+    var id=body.action==='add'?body.item.id:body.id;
+    recent[id]={action:body.action,item:body.item,patch:body.patch,ts:Date.now()};
+  }
+  function mergeRecent(list){
+    var now=Date.now(),out=list.slice();
+    Object.keys(recent).forEach(function(id){
+      var r=recent[id],idx=-1;
+      out.forEach(function(x,k){if(x.id===id)idx=k});
+      if(now-r.ts>45000){delete recent[id];return}
+      if(r.action==='add'){if(idx<0)out.push(r.item);else delete recent[id]}
+      else if(r.action==='update'){if(idx>=0)out[idx]=Object.assign({},out[idx],r.patch)}
+      else if(r.action==='delete'){if(idx>=0)out.splice(idx,1);else delete recent[id]}
+    });
+    return out;
+  }
+  function wait(ms){return new Promise(function(r){setTimeout(r,ms)})}
+  function confirmSaved(body,tries){
+    return apiGet().then(function(g){
+      if(!g||!g.ok)throw new Error('verify failed');
+      var has=function(id){return g.items.some(function(x){return x.id===id})};
+      var ok=body.action==='add'?has(body.item.id):body.action==='update'?has(body.id):!has(body.id);
+      if(ok||tries<=1)return true;   /* the write went through; the sheet can lag a moment behind */
+      return wait(1500).then(function(){return confirmSaved(body,tries-1)});
+    });
+  }
   function mutate(apply,body){
     var snapshot=items.slice();
-    apply();render();cache();pending++;
+    apply();noteRecent(body);render();cache();pending++;
     return apiPost(body).then(function(r){if(!r||!r.ok)throw new Error('save failed');
         if(dbh)return true;
-        return apiGet().then(function(g){
-          if(!g||!g.ok)throw new Error('verify failed');
-          var has=function(id){return g.items.some(function(x){return x.id===id})};
-          if(body.action==='add'&&!has(body.item.id))throw new Error('not saved');
-          if(body.action==='update'&&!has(body.id))throw new Error('not saved');
-          if(body.action==='delete'&&has(body.id))throw new Error('not saved');
-          return true});
+        return confirmSaved(body,3);
       })
-      .catch(function(e){items=snapshot;render();cache();toast('Could not save ('+(e&&e.message||'error')+'). Try again.');return false})
+      .catch(function(e){delete recent[body.action==='add'?body.item.id:body.id];items=snapshot;render();cache();toast('Could not save ('+(e&&e.message||'error')+'). Try again.');return false})
       .then(function(ok){pending--;if(ok){lastJson='';refresh()}return ok});
   }
   function addItem(doc){doc.id=newId();return mutate(function(){items.push(doc)},{action:'add',item:doc})}
@@ -283,8 +304,8 @@ html.locked,html.locked body{overflow:hidden;overscroll-behavior:none;height:100
       if(!r||!r.ok)throw new Error('bad response');
       if(pending>0&&!manual)return;
       offline=false;lastSync=new Date();loaded=true;
-      var j=JSON.stringify(r.items);
-      if(j!==lastJson){lastJson=j;items=r.items;cache();render()}
+      var list=mergeRecent(r.items),j=JSON.stringify(list);
+      if(j!==lastJson){lastJson=j;items=list;cache();render()}
       if(manual)toast('Up to date');
     }).catch(function(){offline=true;loaded=true;if(manual)toast('Could not reach the sheet. Showing the last saved copy.')})
       .then(function(){syncing=false;renderSync()});
