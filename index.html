@@ -238,41 +238,61 @@ html.locked,html.locked body{overflow:hidden;overscroll-behavior:none;height:100
   /* data: Google Sheet through the Apps Script web app */
   function clean(list){return list.map(function(i){var o={};Object.keys(i).forEach(function(k){if(k.charAt(0)!=='_')o[k]=i[k]});return o})}
   function cache(){try{localStorage.setItem(CACHE_KEY,JSON.stringify(clean(items)))}catch(e){}}
+  function fetchT(url,opts){
+    var ctl=window.AbortController?new AbortController():null,t=ctl?setTimeout(function(){ctl.abort()},20000):null;
+    opts=opts||{};if(ctl)opts.signal=ctl.signal;
+    return fetch(url,opts).then(function(r){if(t)clearTimeout(t);return r},function(e){if(t)clearTimeout(t);throw e});
+  }
   function apiGet(){
     if(dbh)return dbh.collection('items').get().then(function(snap){return{ok:true,items:snap.docs.map(function(d){var o=d.data();o.id=d.id;return o})}});
-    return fetch(API+(API.indexOf('?')>=0?'&':'?')+'action=list&t='+Date.now()).then(function(r){return r.json()});
+    return fetchT(API+(API.indexOf('?')>=0?'&':'?')+'action=list&t='+Date.now()).then(function(r){return r.json()});
   }
   function apiPost(body){
     if(dbh){
       var p=body.action==='add'?dbh.doc('items/'+body.item.id).set(body.item):body.action==='update'?dbh.doc('items/'+body.id).update(body.patch):dbh.doc('items/'+body.id).delete();
       return p.then(function(){return{ok:true}});
     }
-    return fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body),redirect:'follow'}).then(function(r){return r.json()});
+    /* no-cors: Safari blocks reading Apps Script replies after its redirect, but the write still runs. We confirm by reading the sheet back. */
+    return fetchT(API,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)}).then(function(){return{ok:true}});
   }
   function mutate(apply,body){
     var snapshot=items.slice();
     apply();render();cache();pending++;
-    return apiPost(body).then(function(r){if(!r||!r.ok)throw new Error('save failed');return true})
+    return apiPost(body).then(function(r){if(!r||!r.ok)throw new Error('save failed');
+        if(dbh)return true;
+        return apiGet().then(function(g){
+          if(!g||!g.ok)throw new Error('verify failed');
+          var has=function(id){return g.items.some(function(x){return x.id===id})};
+          if(body.action==='add'&&!has(body.item.id))throw new Error('not saved');
+          if(body.action==='update'&&!has(body.id))throw new Error('not saved');
+          if(body.action==='delete'&&has(body.id))throw new Error('not saved');
+          return true});
+      })
       .catch(function(){items=snapshot;render();cache();toast('Could not save. Check your connection and try again.');return false})
       .then(function(ok){pending--;if(ok){lastJson='';refresh()}return ok});
   }
   function addItem(doc){doc.id=newId();return mutate(function(){items.push(doc)},{action:'add',item:doc})}
   function updateItem(id,patch){return mutate(function(){items.forEach(function(i){if(i.id===id)Object.assign(i,patch)})},{action:'update',id:id,patch:patch})}
   function deleteItem(id){return mutate(function(){items=items.filter(function(i){return i.id!==id})},{action:'delete',id:id})}
+  var syncing=false;
   function refresh(manual){
-    if(!LIVE()||pending>0)return Promise.resolve();
+    if(!LIVE())return Promise.resolve();
+    if(pending>0&&!manual)return Promise.resolve();
+    if(manual){syncing=true;renderSync()}
     return apiGet().then(function(r){
       if(!r||!r.ok)throw new Error('bad response');
-      if(pending>0)return;
+      if(pending>0&&!manual)return;
       offline=false;lastSync=new Date();loaded=true;
       var j=JSON.stringify(r.items);
-      if(j!==lastJson){lastJson=j;items=r.items;cache();render()}else{renderSync()}
-    }).catch(function(){offline=true;loaded=true;renderSync();if(manual)toast('Could not reach the sheet. Showing the last saved copy.')});
+      if(j!==lastJson){lastJson=j;items=r.items;cache();render()}
+      if(manual)toast('Up to date');
+    }).catch(function(){offline=true;loaded=true;if(manual)toast('Could not reach the sheet. Showing the last saved copy.')})
+      .then(function(){syncing=false;renderSync()});
   }
   function renderSync(){
     var b=document.getElementById('syncbtn');
     if(!LIVE()){b.textContent='';return}
-    b.textContent=(offline?'Offline copy':(lastSync?'Synced '+lastSync.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'Syncing...'))+' · Tap to refresh';
+    b.textContent=syncing?'Refreshing...':(offline?'Offline copy':(lastSync?'Synced '+lastSync.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'Syncing...'))+' · Tap to refresh';
   }
 
   /* header */
