@@ -59,11 +59,12 @@ body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;bac
 .av{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:.72rem;font-weight:700;color:#fff;border:2px solid var(--bg);margin-left:-8px;flex:none}
 
 /* addresses */
-.places{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
-.pc{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:14px;display:flex;flex-direction:column;gap:6px;min-width:0}
-.pc .row{margin-top:auto;padding-top:4px}
+.places{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:4px}
+.pc{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:12px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.pc .pill{margin-top:auto;text-align:center;padding:7px 8px;font-size:.8rem}
 .pc .k{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600}
-.pc .addr{font-weight:600;font-size:.92rem;line-height:1.3;overflow-wrap:anywhere}
+.pc .addr{font-size:.76rem;line-height:1.3;color:var(--muted);overflow-wrap:anywhere}
+.pc .addr b{display:block;color:var(--fg);font-size:.92rem;font-weight:600;line-height:1.25;margin-bottom:2px}
 .row{display:flex;flex-wrap:wrap;gap:8px}
 .pill{border:1px solid var(--glass-line);background:var(--glass);box-shadow:inset 0 1px 0 var(--glass-hi);border-radius:999px;padding:6px 12px;font-size:.84rem;font-weight:600;text-decoration:none;color:var(--fg);display:inline-block}
 
@@ -168,21 +169,21 @@ html.locked,html.locked body{overflow:hidden;overscroll-behavior:none;height:100
 </head>
 <body>
 <div class="wrap">
-  <section class="places" aria-label="Addresses">
+  <section class="places" aria-label="Key places">
     <div class="pc">
       <div class="k">Airbnb</div>
-      <div class="addr">2 Yorktown Avenue, West Chester, PA 19382</div>
-      <div class="row">
-        <a class="pill" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&amp;query=2+Yorktown+Avenue+West+Chester+PA+19382">Directions</a>
-        <a class="pill" target="_blank" rel="noopener" href="https://www.airbnb.com/rooms/1455010795412962822">Listing</a>
-      </div>
+      <div class="addr"><b>2 Yorktown Ave</b>West Chester, PA</div>
+      <a class="pill" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&amp;query=2+Yorktown+Avenue+West+Chester+PA+19382">Directions</a>
     </div>
     <div class="pc">
       <div class="k">Wedding</div>
-      <div class="addr">Terrain at Styer's<br>914 Baltimore Pike, Glen Mills, PA 19342</div>
-      <div class="row">
-        <a class="pill" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&amp;query=Terrain+at+Styer%27s+914+Baltimore+Pike+Glen+Mills+PA+19342">Directions</a>
-      </div>
+      <div class="addr"><b>Terrain at Styer's</b>Glen Mills, PA</div>
+      <a class="pill" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&amp;query=Terrain+at+Styer%27s+914+Baltimore+Pike+Glen+Mills+PA+19342">Directions</a>
+    </div>
+    <div class="pc">
+      <div class="k">Places</div>
+      <div class="addr"><b>Saved spots</b>Recommended</div>
+      <a class="pill" target="_blank" rel="noopener" href="https://maps.app.goo.gl/QFCSeeSDKVUChGxZ6">Open list</a>
     </div>
   </section>
 
