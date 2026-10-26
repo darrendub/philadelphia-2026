@@ -1,5 +1,5 @@
 // Keeps the app opening instantly and working with a weak signal.
-const CACHE = 'philly26-shell-v9';
+const CACHE = 'philly26-shell-v10';
 const SHELL = ['./', 'index.html', 'config.js', 'manifest.webmanifest', 'icon-192.png'];
 
 self.addEventListener('install', function (e) {
