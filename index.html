@@ -121,7 +121,8 @@ body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;bac
 .ap span{font-size:.9rem;color:var(--muted);font-variant-numeric:tabular-nums}
 .ap.r{text-align:right}
 .track{height:2px;background:rgba(255,255,255,.18);border-radius:2px;min-width:30px}
-.syncbtn{display:block;margin:30px auto 0;background:none;border:0;color:var(--muted);font-size:.82rem;padding:8px 12px}
+.tznote{margin:34px 0 0;text-align:center;color:var(--muted);font-size:.8rem}
+.syncbtn{margin-top:6px!important;display:block;margin:30px auto 0;background:none;border:0;color:var(--muted);font-size:.82rem;padding:8px 12px}
 
 /* glass controls */
 .glass{background:var(--glass);border:1px solid var(--glass-line);box-shadow:inset 0 1px 0 var(--glass-hi),inset 0 -1px 0 rgba(255,255,255,.04),0 10px 30px var(--shadow);-webkit-backdrop-filter:blur(24px) saturate(1.8);backdrop-filter:blur(24px) saturate(1.8)}
@@ -132,7 +133,8 @@ body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;bac
 .btn:disabled{opacity:.5}
 
 /* sheets */
-html.locked .wrap,html.locked .bar,html.locked .toast{display:none}
+html.locked .wrap,html.locked .bar,html.locked .tact{margin-left:12px;border:0;background:none;color:var(--accent-dark,#2f6bd6);font-weight:700;font-size:.9rem;padding:0}
+.toast{display:none}
 html.locked,html.locked body{overflow:hidden;overscroll-behavior:none;height:100%}
 .scrim{position:fixed;left:0;right:0;top:0;bottom:0;z-index:20;background:rgba(0,0,0,.35);display:flex;align-items:flex-end;justify-content:center;overscroll-behavior:contain}
 .full{width:100%;max-width:640px;height:calc(100% - max(10px,env(safe-area-inset-top,0px)));display:flex;flex-direction:column;background:var(--bg);border:1px solid var(--glass-line);border-bottom:0;border-radius:32px 32px 0 0;box-shadow:inset 0 1px 0 var(--glass-hi),0 -10px 40px var(--shadow);overflow:hidden}
@@ -161,7 +163,7 @@ html.locked,html.locked body{overflow:hidden;overscroll-behavior:none;height:100
 .opt .av{width:24px;height:24px;margin:0;border:0;font-size:.66rem}
 .opt[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
 .drow{width:100%;min-height:52px;background:none;border:0;color:var(--danger);font-weight:600;font-size:1rem}
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(96px + env(safe-area-inset-bottom,0px));z-index:30;background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:999px;font-weight:600;font-size:.9rem;max-width:90%;text-align:center}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(28px + env(safe-area-inset-bottom,0px));z-index:30;background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:999px;font-weight:600;font-size:.9rem;max-width:90%;text-align:center}
 </style>
 </head>
 <body>
@@ -185,6 +187,7 @@ html.locked,html.locked body{overflow:hidden;overscroll-behavior:none;height:100
   </section>
 
   <main id="days"></main>
+  <p class="tznote">Times are local to where each event happens.</p>
   <button class="syncbtn" id="syncbtn" type="button"></button>
 </div>
 
@@ -235,8 +238,10 @@ html.locked,html.locked body{overflow:hidden;overscroll-behavior:none;height:100
   function dur(ms){var m=Math.round(ms/60000),hh=Math.floor(m/60);return hh+'h '+pad(m%60)+'m'}
   function avatar(name,i){return h('span',{class:'av',style:'background:'+PCOL[i],title:name},name[0])}
   function mapsUrl(q){return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(q)}
-  function toast(msg){
-    var t=h('div',{class:'toast',role:'status'},msg);document.body.append(t);setTimeout(function(){t.remove()},3400);
+  function toast(msg,label,fn){
+    var t=h('div',{class:'toast',role:'status'},msg);
+    if(label){t.append(h('button',{type:'button',class:'tact',onclick:function(){t.remove();fn()}},label))}
+    document.body.append(t);setTimeout(function(){t.remove()},label?7000:3400);
   }
   function newId(){return 'i'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
 
@@ -298,6 +303,7 @@ html.locked,html.locked body{overflow:hidden;overscroll-behavior:none;height:100
       .then(function(ok){pending--;if(ok){lastJson='';refresh()}return ok});
   }
   function addItem(doc){doc.id=newId();return mutate(function(){items.push(doc)},{action:'add',item:doc})}
+  function restoreItem(doc){return mutate(function(){items.push(doc)},{action:'add',item:doc}).then(function(ok){if(ok)toast('Restored')})}
   function updateItem(id,patch){return mutate(function(){items.forEach(function(i){if(i.id===id)Object.assign(i,patch)})},{action:'update',id:id,patch:patch})}
   function deleteItem(id){return mutate(function(){items=items.filter(function(i){return i.id!==id})},{action:'delete',id:id})}
   var syncing=false;
@@ -503,7 +509,8 @@ html.locked,html.locked body{overflow:hidden;overscroll-behavior:none;height:100
     var delArmed=false;
     var delBtn=isNew?null:h('button',{type:'button',class:'drow',onclick:function(){
       if(!delArmed){delArmed=true;delBtn.textContent='Tap again to delete';return}
-      close();deleteItem(item.id).then(function(ok){if(ok)toast('Deleted')})}},'Delete');
+      var snap=clean([item])[0];
+      close();deleteItem(item.id).then(function(ok){if(ok)toast('Deleted','Undo',function(){restoreItem(snap)})})}},'Delete');
     function submit(e){
       e.preventDefault();
       var tt=title.value.trim();if(!tt){title.focus();return}
