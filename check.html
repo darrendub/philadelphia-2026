@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex"><title>Flight check</title>
+<style>body{margin:0;padding:24px 16px;background:#0b0e15;color:#eef1f6;font:16px/1.5 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif}
+button{font:inherit;font-weight:600;background:#4f7cff;color:#fff;border:0;border-radius:14px;padding:14px 20px;width:100%}
+pre{white-space:pre-wrap;word-break:break-word;background:rgba(255,255,255,.08);border-radius:14px;padding:14px;font-size:13px}
+h1{font-size:1.4rem;margin:0 0 6px}p{color:#9aa3b5;margin:0 0 18px}</style></head><body>
+<h1>Flight status check</h1>
+<p>Looks up AA 2553 on Nov 13 through your Apps Script. Costs 2 units.</p>
+<button id="go">Run check</button><pre id="out">Not run yet.</pre>
+<script src="config.js"></script>
+<script>
+var out=document.getElementById('out');
+document.getElementById('go').onclick=function(){
+  var api=(window.TRIP_CONFIG||{}).apiUrl;out.textContent='Checking...';
+  fetch(api+(api.indexOf('?')>=0?'&':'?')+'action=flight&n=AA2553&d=2026-11-13&t='+Date.now()).then(function(r){return r.json()}).then(function(v){
+    var msg=v.ok?'Works. Status: '+v.status+'\nDeparts '+v.dep.sched+' (terminal '+(v.dep.terminal||'--')+')\nArrives '+v.arr.sched+(v.arr.est?' (expected '+v.arr.est+')':'')+'\nAircraft: '+v.aircraft
+      :v.error==='no_key'?'The script has no AERO_KEY yet. Add it in Script Properties.'
+      :v.error==='not_found'?'Reached the lookup, but no flight was found for that date.'
+      :v.error==='cap'?'Monthly safety cap reached.':'Failed: '+(v.error||'unknown');
+    out.textContent=msg+'\n\n'+JSON.stringify(v,null,2);
+  },function(e){out.textContent='Could not reach the script: '+e+'\nMake sure you deployed a New version.'});
+};
+</script></body></html>

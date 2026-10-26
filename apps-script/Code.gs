@@ -12,6 +12,8 @@ const NUMERIC = ['utc','arrUtc'];
 
 function doGet(e) {
   try {
+    const p = (e && e.parameter) || {};
+    if (p.action === 'flight') return json_(flight_(p.n, p.d));
     return json_({ ok: true, items: readAll_() });
   } catch (err) {
     return json_({ ok: false, error: String(err) });
@@ -180,4 +182,82 @@ function seed_() {
     { id: 'f-as370', area: 'flight', flight: 'AS 370', title: 'Philadelphia to Seattle', from: 'PHL', to: 'SEA', day: '2026-11-17', time: '07:02', arrDay: '2026-11-17', arrTime: '10:08', utc: -5, arrUtc: -8, who: ['Darren', 'Sophia', 'Rose', 'Scott', 'Gail'] },
     { id: 'f-as626', area: 'flight', flight: 'AS 626', title: 'Seattle to Honolulu', from: 'SEA', to: 'HNL', day: '2026-11-17', time: '11:55', arrDay: '2026-11-17', arrTime: '16:30', utc: -8, arrUtc: -10, who: ['Darren', 'Sophia', 'Rose', 'Scott', 'Gail'] }
   ];
+}
+
+
+/* ---------- Live flight status (AeroDataBox via RapidAPI) ----------
+ * Needs a Script Property named AERO_KEY (Project Settings > Script Properties).
+ * Free plan = 400 units a month and this lookup costs 2 units, so calls are
+ * cached for 15 minutes and capped at 180 a month. */
+const AERO_HOST = 'aerodatabox.p.rapidapi.com';
+const AERO_MONTHLY_CAP = 180;
+
+function flight_(n, d) {
+  n = String(n || '').replace(/\s+/g, '').toUpperCase();
+  d = String(d || '');
+  if (!/^[A-Z0-9]{3,8}$/.test(n) || !/^\d{4}-\d{2}-\d{2}$/.test(d)) return { ok: false, error: 'bad_request' };
+  const cache = CacheService.getScriptCache();
+  const key = 'fl:' + n + ':' + d;
+  const hit = cache.get(key);
+  if (hit) return JSON.parse(hit);
+  const props = PropertiesService.getScriptProperties();
+  const apiKey = props.getProperty('AERO_KEY');
+  if (!apiKey) return { ok: false, error: 'no_key' };
+  const ym = Utilities.formatDate(new Date(), 'UTC', 'yyyy-MM');
+  const used = (props.getProperty('AERO_USED') || '').split(':');
+  const count = used[0] === ym ? Number(used[1]) || 0 : 0;
+  if (count >= AERO_MONTHLY_CAP) return { ok: false, error: 'cap' };
+  props.setProperty('AERO_USED', ym + ':' + (count + 1));
+  const url = 'https://' + AERO_HOST + '/flights/number/' + encodeURIComponent(n) + '/' + d +
+    '?withAircraftImage=false&withLocation=false&withFlightPlan=false&dateLocalRole=Both';
+  const res = UrlFetchApp.fetch(url, {
+    muteHttpExceptions: true,
+    headers: { 'X-RapidAPI-Key': apiKey, 'X-RapidAPI-Host': AERO_HOST }
+  });
+  const code = res.getResponseCode();
+  let out;
+  if (code === 200) {
+    const list = JSON.parse(res.getContentText() || '[]');
+    out = list.length ? shapeFlight_(list[0]) : { ok: false, error: 'not_found' };
+  } else if (code === 204 || code === 404) {
+    out = { ok: false, error: 'not_found' };
+  } else {
+    out = { ok: false, error: code === 429 ? 'limit' : 'upstream_' + code };
+  }
+  cache.put(key, JSON.stringify(out), out.ok ? 900 : 120);
+  return out;
+}
+
+function hm_(t) { return t && t.local ? String(t.local).substring(11, 16) : ''; }
+function ymd_(t) { return t && t.local ? String(t.local).substring(0, 10) : ''; }
+function ms_(t) {
+  if (!t || !t.utc) return null;
+  const v = Date.parse(String(t.utc).replace(' ', 'T').replace('Z', ':00Z'));
+  return isNaN(v) ? null : v;
+}
+
+function shapeFlight_(f) {
+  const dep = f.departure || {}, arr = f.arrival || {};
+  const dEst = dep.revisedTime || dep.predictedTime, aEst = arr.revisedTime || arr.predictedTime;
+  function delay(sched, est) {
+    const a = ms_(sched), b = ms_(est);
+    return a != null && b != null ? Math.round((b - a) / 60000) : null;
+  }
+  return {
+    ok: true,
+    status: f.status || 'Unknown',
+    delayMin: delay(arr.scheduledTime, aEst),
+    depDelayMin: delay(dep.scheduledTime, dEst),
+    aircraft: f.aircraft && f.aircraft.model || '',
+    updated: f.lastUpdatedUtc ? String(f.lastUpdatedUtc).replace(' ', 'T') : '',
+    dep: { sched: hm_(dep.scheduledTime), est: hm_(dEst), terminal: dep.terminal || '', gate: dep.gate || '' },
+    arr: { sched: hm_(arr.scheduledTime), est: hm_(aEst), terminal: arr.terminal || '', gate: arr.gate || '',
+           baggage: arr.baggageBelt || '', day: ymd_(arr.scheduledTime) }
+  };
+}
+
+/** Run once from the editor (select testFlight, press Run) to approve the
+ *  "connect to an external service" permission and check the key works. */
+function testFlight() {
+  Logger.log(JSON.stringify(flight_('AA2553', '2026-11-12')));
 }
