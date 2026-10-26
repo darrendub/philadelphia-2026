@@ -164,7 +164,7 @@ html.locked,html.locked body{overflow:hidden;overscroll-behavior:none;height:100
 .opt[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
 .drow{width:100%;min-height:52px;background:none;border:0;color:var(--danger);font-weight:600;font-size:1rem}
 .scrim2{position:fixed;inset:0;z-index:25;background:rgba(0,0,0,.4);display:flex;align-items:flex-end;justify-content:center;padding:0 8px calc(8px + env(safe-area-inset-bottom,0px))}
-.sheet2{width:100%;max-width:560px;max-height:92%;overflow:auto;background:var(--glass-strong);border:1px solid var(--glass-line);border-radius:32px;box-shadow:inset 0 1px 0 var(--glass-hi),0 18px 50px var(--shadow);-webkit-backdrop-filter:blur(30px) saturate(1.8);backdrop-filter:blur(30px) saturate(1.8);padding:10px 20px 22px;animation:rise .24s cubic-bezier(.2,.8,.2,1)}
+.sheet2{width:100%;max-width:560px;max-height:92%;overflow:auto;overscroll-behavior:contain;background:var(--glass-strong);border:1px solid var(--glass-line);border-radius:32px;box-shadow:inset 0 1px 0 var(--glass-hi),0 18px 50px var(--shadow);-webkit-backdrop-filter:blur(30px) saturate(1.8);backdrop-filter:blur(30px) saturate(1.8);padding:0;animation:rise .24s cubic-bezier(.2,.8,.2,1)}
 .grab2{width:38px;height:5px;border-radius:3px;background:var(--muted);opacity:.55;margin:0 auto 12px}
 .sh{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 .sfl{font-size:1.7rem;font-weight:700;letter-spacing:-.02em;line-height:1.1}
@@ -184,11 +184,55 @@ html.locked,html.locked body{overflow:hidden;overscroll-behavior:none;height:100
 .sgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .sc2{background:var(--glass);border:1px solid var(--glass-line);border-radius:20px;padding:12px 14px}
 .sk{font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:6px}
+.tbl{padding:4px 14px}
+.tr3{display:grid;grid-template-columns:minmax(70px,.9fr) 1fr 1fr;gap:8px;align-items:baseline;padding:9px 0;font-size:.92rem;border-top:1px solid var(--glass-line)}
+.tr3:first-child{border-top:0}
+.tr3 b{text-align:right;white-space:nowrap;font-weight:600}
+.tr3 b.ok{color:var(--good)}.tr3 b.late{color:var(--warn)}
+.tk{color:var(--muted)}
+.th span{font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.th span.tcol{text-align:right}
+.srow{flex-wrap:wrap}
 .sr{display:flex;justify-content:space-between;gap:8px;padding:5px 0;font-size:.9rem;color:var(--muted)}
 .sr b{color:var(--fg);font-weight:600}.sr b.ok{color:var(--good)}
 .chip2.warn{background:rgba(255,180,84,.2);color:var(--warn)}.chip2.bad{background:rgba(255,122,122,.2);color:var(--danger)}.chip2.neutral{background:var(--glass);color:var(--fg)}
 .sr b.late{color:var(--warn)}
-.sfoot{display:flex;justify-content:space-between;gap:12px;margin-top:14px;font-size:.78rem}.sfoot a{color:var(--muted);text-decoration:underline;text-underline-offset:3px}
+.sfoot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 12px;margin-top:14px;font-size:.78rem}.sfoot a{white-space:nowrap;color:var(--muted);text-decoration:underline;text-underline-offset:3px}
+.shead{position:sticky;top:0;z-index:3;padding:10px 20px 12px;background:rgba(22,26,36,.93);-webkit-backdrop-filter:blur(28px) saturate(1.6);backdrop-filter:blur(28px) saturate(1.6);border-bottom:1px solid transparent;transition:border-color .15s}
+.shead.sc{border-bottom-color:var(--glass-line)}
+.shead .grab2{margin-bottom:10px}
+.sh{align-items:center}
+.hdt{flex:1;min-width:0}
+.sh .sfl{font-size:.78rem;font-weight:600;letter-spacing:.06em;color:var(--muted);line-height:1.2}
+.sh .sttl{color:var(--fg);font-size:1.3rem;font-weight:700;letter-spacing:-.01em;margin-top:2px;line-height:1.15}
+.wh{display:flex;align-items:center;gap:10px;margin-top:10px;min-width:0}
+.wav{display:flex;flex:none}
+.pav{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:.68rem;font-weight:700;color:#fff;flex:none}
+.wav .pav{border:2px solid #1a1f2b;margin-left:-6px;box-sizing:content-box;width:22px;height:22px}.wav .pav:first-child{margin-left:0}
+.wn{color:var(--muted);font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.sbody{padding:14px 20px 22px}
+.sbody .srow{margin:0 0 18px}
+.route{grid-template-columns:minmax(0,1fr) 72px minmax(0,1fr);gap:8px;align-items:start;margin-bottom:18px}
+.rp b{font-size:2.1rem}
+.rp .num{font-size:1.05rem;white-space:nowrap}.rp .num sup{font-size:.7rem;margin-left:2px}
+.rp .num.late{color:var(--warn)}.rp .num.early{color:var(--good)}
+.rp s{display:block;margin-top:2px;color:var(--muted);font-size:.82rem;font-weight:500;white-space:nowrap}
+.rp em{display:block;margin-top:6px;color:var(--muted);font-size:.78rem;font-style:normal;line-height:1.25}
+.rmid{display:flex;flex-direction:column;align-items:center;gap:3px;padding:12px 0 0;position:static}
+.rl{display:flex;align-items:center;gap:3px;width:100%}.rline{flex:1}
+.rmid small{position:static;color:var(--muted);font-size:.76rem;white-space:nowrap;text-align:center}
+.dcard{background:var(--glass);border:1px solid var(--glass-line);border-radius:20px;padding:12px 14px;margin-top:10px}
+.dch{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.dcl{display:flex;align-items:center;gap:8px;font-weight:600}
+.dcl svg{width:18px;height:18px;color:var(--fg);flex:none}
+.dcs{color:var(--muted);font-size:.88rem;text-align:right}.dcs.ok{color:var(--good)}.dcs.late{color:var(--warn)}.dcs.early{color:var(--good)}
+.dts{display:flex;gap:10px 22px;margin-top:10px;flex-wrap:wrap}
+.dt span{display:block;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.dt b{display:block;font-size:1.4rem;font-weight:700;margin-top:1px}
+.dh{margin-top:8px;color:var(--muted);font-size:.85rem}
+.ac{margin-top:16px;text-align:center;color:var(--muted);font-size:.85rem}
+.sfoot{justify-content:center;margin-top:10px}
+@media(max-width:360px){.rp b{font-size:1.85rem}.rp .num{font-size:.95rem}.route{grid-template-columns:minmax(0,1fr) 60px minmax(0,1fr)}}
 .sample{margin-top:14px;text-align:center;color:var(--muted);font-size:.76rem}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(28px + env(safe-area-inset-bottom,0px));z-index:30;background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:999px;font-weight:600;font-size:.9rem;max-width:90%;text-align:center}
 </style>
@@ -215,6 +259,7 @@ html.locked,html.locked body{overflow:hidden;overscroll-behavior:none;height:100
 
   <main id="days"></main>
   <p class="tznote">Times are local to where each event happens.</p>
+  <p class="tznote" style="margin-top:6px"><a href="https://aerodatabox.com" target="_blank" rel="noopener" style="color:inherit">Flight data by AeroDataBox</a></p>
   <button class="syncbtn" id="syncbtn" type="button"></button>
 </div>
 
@@ -487,45 +532,77 @@ html.locked,html.locked body{overflow:hidden;overscroll-behavior:none;height:100
     return['Scheduled','neutral'];
   }
   function ago(iso){var t=Date.parse(iso);if(!t)return'';var m=Math.round((Date.now()-t)/60000);if(m<2)return'just now';if(m<60)return m+' min ago';var hh=Math.round(m/60);if(hh<48)return hh+' h ago';return Math.round(hh/24)+' days ago'}
+  var APT={HNL:['Daniel K Inouye Intl.',21.3187,-157.9225],ORD:["Chicago O'Hare",41.9742,-87.9073],SEA:['Seattle-Tacoma Intl.',47.4502,-122.3088],SFO:['San Francisco Intl.',37.6213,-122.379],PHL:['Philadelphia Intl.',39.8719,-75.2411]};
+  function miles(a,b){var A=APT[a],B=APT[b];if(!A||!B)return 0;var r=Math.PI/180,dl=(B[2]-A[2])*r,p1=A[1]*r,p2=B[1]*r;
+    var x=Math.sin((p2-p1)/2),y=Math.sin(dl/2),q=x*x+Math.cos(p1)*Math.cos(p2)*y*y;return Math.round(2*3958.8*Math.asin(Math.sqrt(q)))}
+  function mins(m){m=Math.abs(m);return m<60?m+'m':Math.floor(m/60)+'h'+(m%60?' '+(m%60)+'m':'')}
+  function aptIcon(up){return svg('<svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="currentColor"/><path d="'+(up?'M7 13L13 7M8.5 7H13V11.5':'M7 7L13 13M13 8.5V13H8.5')+'" fill="none" stroke="#0b0e15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>')}
   function openStatus(i){
     var layer=document.getElementById('layer2');
     function close(){layer.replaceChildren()}
     var dd=DAYS.filter(function(x){return x.id===i.day})[0];
-    var body=h('div',null);
+    var body=h('div',{class:'sbody'});
+    function side(kind,v,hideEst){
+      var o=(v&&v[kind])||{},up=kind==='dep';
+      var sched=o.sched||(up?i.time:i.arrTime),est=hideEst?'':o.est,delta=v?(up?v.depDelayMin:v.delayMin):null;
+      var useEst=est&&delta,cls=useEst&&delta>=15?'late':(useEst&&delta<=-5?'early':''),sub,subc='';
+      if(!est)sub='Scheduled';
+      else if(delta==null)sub='Estimated';
+      else if(!delta){sub='On time';subc='ok'}
+      else{sub='Now '+(up?'departs ':'arrives ')+mins(delta)+(delta>0?' later':' earlier');subc=cls}
+      return{o:o,shown:useEst?est:sched,struck:useEst&&sched?sched:'',cls:cls,sub:sub,subc:subc};
+    }
+    function card(up,S,label,rows){
+      var tiles=rows.filter(function(x){return x[1]});
+      return h('div',{class:'dcard'},
+        h('div',{class:'dch'},h('span',{class:'dcl'},aptIcon(up),label),h('span',{class:'dcs '+S.subc},S.sub)),
+        tiles.length?h('div',{class:'dts'},tiles.map(function(x){return h('div',{class:'dt'},h('span',null,x[0]),h('b',null,x[1]))}))
+          :h('div',{class:'dh'},up?'Terminal and gate show up closer to departure.':'Terminal, gate and baggage show up closer to landing.'));
+    }
     function paint(v,state){
-      var dep=(v&&v.dep)||{},arr=(v&&v.arr)||{};
-      var dlay=v?(v.depDelayMin||0):0,alay=v?(v.delayMin||0):0;
-      var chip,note='';
-      if(state==='loading')chip=['Checking...','neutral'];
-      else if(state==='live'){chip=chipFor(v);note=v.updated?'Updated '+ago(v.updated):''}
-      else{chip=['Scheduled','neutral'];note=state==='early'?'Live status opens 2 days before departure':'Live status is unavailable right now'}
-      var span=(i._dep&&i._arr)?dur(i._arr-i._dep):'';
-      var plus=((arr.day||i.arrDay||i.day)!==i.day)?h('sup',null,'+1'):null;
-      function row(k,val,cls){return h('div',{class:'sr'},h('span',null,k),h('b',{class:cls||''},val||'--'))}
-      function est(e,lay){return e?h('b',{class:lay>=15?'late':'ok'},fmt(e)):h('b',null,'--')}
-      function erow(e,lay){return h('div',{class:'sr'},h('span',null,'Estimated'),est(e,lay))}
+      var hideEst=false,head,sub='',hc='';
+      if(state==='loading'){head='Checking status...';hc='neutral'}
+      else if(state==='live'){
+        var chip=chipFor(v);head=chip[0];hc=chip[1];sub=v.updated?'Updated '+ago(v.updated):'';
+        var stale=v.updated&&Date.now()-Date.parse(v.updated)>36*3600000;
+        if(stale&&['Canceled','CanceledUncertain','Diverted','Arrived'].indexOf(v.status)<0){head='Scheduled';hc='neutral';sub='Live times not available yet';hideEst=true}
+      }else if(state==='early'){
+        var n=Date.now(),dt=i._dep!=null?i._dep-n:null;
+        if(i._arr!=null&&n>i._arr)head='Completed';
+        else if(dt!=null&&dt>0){var dy=Math.round(dt/86400000);head=dy>=1?'Departs in '+dy+(dy===1?' day':' days'):'Departs in '+Math.max(1,Math.round(dt/3600000))+' hours'}
+        else head='Scheduled';
+        hc='neutral';sub='Live status opens 2 days before departure';
+      }else{head='Scheduled';hc='neutral';sub='Live status is unavailable right now'}
+      var D=side('dep',v,hideEst),A=side('arr',v,hideEst);
+      var span=(i._dep&&i._arr)?dur(i._arr-i._dep):'',mi=miles(i.from,i.to);
+      var over=(A.o.day||i.arrDay||i.day)!==i.day;
+      function end(S,code,right){return h('div',{class:'rp'+(right?' r':'')},h('b',null,code),
+        h('span',{class:'num '+S.cls},fmt(S.shown),right&&over?h('sup',null,'+1'):null),
+        S.struck?h('s',null,fmt(S.struck)):null,APT[code]?h('em',null,APT[code][0]):null)}
       var kids=[
-        h('div',{class:'srow'},h('span',{class:'chip2 '+chip[1]},chip[0]),h('span',{class:'upd'},note)),
-        h('div',{class:'route'},
-          h('div',{class:'rp'},h('b',null,i.from),h('span',{class:'num'},fmt(dep.sched||i.time))),
-          h('div',{class:'rmid'},h('div',{class:'rline'}),h('i',{class:'rplane'},planeIcon()),h('div',{class:'rline'}),h('small',null,span)),
-          h('div',{class:'rp r'},h('b',null,i.to),h('span',{class:'num'},fmt(arr.sched||i.arrTime),plus))),
-        h('div',{class:'sgrid'},
-          h('div',{class:'sc2'},h('div',{class:'sk'},'Departs'),row('Scheduled',fmt(dep.sched||i.time)),erow(dep.est,dlay),row('Terminal',dep.terminal),row('Gate',dep.gate)),
-          h('div',{class:'sc2'},h('div',{class:'sk'},'Arrives'),row('Scheduled',fmt(arr.sched||i.arrTime)),erow(arr.est,alay),row('Terminal',arr.terminal),row('Gate',arr.gate),row('Baggage',arr.baggage))),
-        v&&v.aircraft?h('div',{class:'sample'},v.aircraft):null,
-        h('div',{class:'sfoot'},
-          h('a',{href:'https://www.google.com/search?q='+encodeURIComponent(i.flight+' flight status '+(dd?'Nov '+dd.n:'')),target:'_blank',rel:'noopener'},'Open in Google'),
-          h('a',{href:'https://aerodatabox.com',target:'_blank',rel:'noopener'},'Flight data by AeroDataBox')),
-        v&&v.sample?h('div',{class:'sample'},'Sample data for this preview'):null];
+        h('div',{class:'srow'},h('span',{class:'chip2 '+hc},head),sub?h('span',{class:'upd'},sub):null),
+        h('div',{class:'route'},end(D,i.from,false),
+          h('div',{class:'rmid'},h('div',{class:'rl'},h('div',{class:'rline'}),h('i',{class:'rplane'},planeIcon()),h('div',{class:'rline'})),
+            h('small',null,span),mi?h('small',null,mi.toLocaleString('en-US')+' mi'):null,over?h('small',null,'Overnight'):null),
+          end(A,i.to,true)),
+        card(true,D,'Departure',[['Terminal',D.o.terminal],['Gate',D.o.gate]]),
+        card(false,A,'Arrival',[['Terminal',A.o.terminal],['Gate',A.o.gate],['Baggage',A.o.baggage]]),
+        (v&&v.aircraft)?h('div',{class:'ac'},v.aircraft):null,
+        h('div',{class:'sfoot'},h('a',{href:'https://www.google.com/search?q='+encodeURIComponent(i.flight+' flight status '+(dd?'Nov '+dd.n:'')),target:'_blank',rel:'noopener'},'Open in Google')),
+        (v&&v.sample)?h('div',{class:'sample'},'Sample data for this preview'):null];
       body.replaceChildren.apply(body,kids.filter(Boolean));
     }
-    var sheet=h('div',{class:'sheet2',role:'dialog','aria-label':'Flight status'},
+    var who=(i.who||[]).filter(function(n){return PEOPLE.indexOf(n)>=0});
+    var head=h('div',{class:'shead'},
       h('div',{class:'grab2'}),
       h('div',{class:'sh'},
-        h('div',null,h('div',{class:'sfl'},i.flight),h('div',{class:'sttl'},i.title)),
+        h('div',{class:'hdt'},h('div',{class:'sfl'},i.flight+(dd?' • '+dd.dow.toUpperCase()+', '+dd.n+' NOV':'')),h('div',{class:'sttl'},i.title)),
         h('button',{type:'button',class:'nbtn','aria-label':'Close',onclick:close},svg('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>'))),
-      body);
+      who.length?h('div',{class:'wh'},
+        h('span',{class:'wav'},who.map(function(n){return h('span',{class:'pav',style:'background:'+PCOL[PEOPLE.indexOf(n)]},n[0])})),
+        h('span',{class:'wn'},who.join(', '))):null);
+    var sheet=h('div',{class:'sheet2',role:'dialog','aria-label':'Flight status'},head,body);
+    sheet.addEventListener('scroll',function(){head.classList.toggle('sc',sheet.scrollTop>4)});
     var scrim=h('div',{class:'scrim2',onclick:function(e){if(e.target===scrim)close()}},sheet);
     layer.replaceChildren(scrim);
     if(!inLiveWindow(i)){paint(null,'early');return}
