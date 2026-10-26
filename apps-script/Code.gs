@@ -27,13 +27,18 @@ function doPost(e) {
     if (body.action === 'add') {
       const item = body.item || {};
       if (!item.id) item.id = newId_();
-      sh.appendRow(toRow_(item));
+      const r = sh.getLastRow() + 1;
+      const rng = sh.getRange(r, 1, 1, HEADERS.length);
+      rng.setNumberFormat('@');           // keep 2026-11-16 and 06:00 as plain text
+      rng.setValues([toRow_(item)]);
     } else if (body.action === 'update') {
       const row = findRow_(sh, body.id);
       if (!row) return json_({ ok: false, error: 'not_found' });
       const current = rowToObj_(sh.getRange(row, 1, 1, HEADERS.length).getValues()[0]);
       const merged = Object.assign({}, current, body.patch || {}, { id: body.id });
-      sh.getRange(row, 1, 1, HEADERS.length).setValues([toRow_(merged)]);
+      const urng = sh.getRange(row, 1, 1, HEADERS.length);
+      urng.setNumberFormat('@');
+      urng.setValues([toRow_(merged)]);
     } else if (body.action === 'delete') {
       const row = findRow_(sh, body.id);
       if (row) sh.deleteRow(row);
@@ -81,6 +86,39 @@ function toRow_(item) {
   });
 }
 
+const DAY_COLS = ['day', 'arrDay'];
+const TIME_COLS = ['time', 'endTime', 'arrTime'];
+
+// Sheets sometimes turns "2026-11-16" or "6:00" typed by hand into real dates and times.
+// Read what the cell shows and turn it back into plain 2026-11-16 and 06:00.
+function normDay_(s) {
+  s = String(s).trim();
+  if (!s) return '';
+  let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (m) return m[1] + '-' + pad2_(m[2]) + '-' + pad2_(m[3]);
+  m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (m) return m[3] + '-' + pad2_(m[1]) + '-' + pad2_(m[2]);
+  const d = new Date(s);
+  if (!isNaN(d.getTime())) return Utilities.formatDate(d, SpreadsheetApp.openById(SHEET_ID).getSpreadsheetTimeZone(), 'yyyy-MM-dd');
+  return s;
+}
+
+function normTime_(s) {
+  s = String(s).trim();
+  if (!s) return '';
+  const m = s.match(/^(\d{1,2})(?::(\d{2}))?(?::\d{2})?\s*([ap]\.?m?\.?)?$/i);
+  if (!m) return s;
+  let hh = Number(m[1]);
+  const mm = Number(m[2] || 0);
+  const ap = m[3] ? m[3][0].toLowerCase() : '';
+  if (ap === 'p' && hh < 12) hh += 12;
+  if (ap === 'a' && hh === 12) hh = 0;
+  if (hh > 23 || mm > 59) return s;
+  return pad2_(hh) + ':' + pad2_(mm);
+}
+
+function pad2_(n) { return ('0' + Number(n)).slice(-2); }
+
 function rowToObj_(row) {
   const o = {};
   HEADERS.forEach(function (h, i) {
@@ -89,6 +127,8 @@ function rowToObj_(row) {
     v = (v === null || v === undefined) ? '' : String(v).trim();
     if (h === 'who') o[h] = v ? v.split(',').map(function (s) { return s.trim(); }).filter(Boolean) : [];
     else if (NUMERIC.indexOf(h) >= 0) o[h] = v === '' ? null : Number(v);
+    else if (DAY_COLS.indexOf(h) >= 0) o[h] = normDay_(v);
+    else if (TIME_COLS.indexOf(h) >= 0) o[h] = normTime_(v);
     else o[h] = v;
   });
   return o;
@@ -98,17 +138,19 @@ function readAll_() {
   const sh = sheet_();
   const last = sh.getLastRow();
   if (last < 2) return [];
-  const range = sh.getRange(2, 1, last - 1, HEADERS.length);
-  const values = range.getValues();
-  let fixed = false;
+  const values = sh.getRange(2, 1, last - 1, HEADERS.length).getDisplayValues();
   const out = [];
-  values.forEach(function (row) {
+  values.forEach(function (row, idx) {
     const o = rowToObj_(row);
     if (!o.title) return;
-    if (!o.id) { o.id = newId_(); row[0] = o.id; fixed = true; }
+    if (!o.id) {                      // rows added by hand in Sheets get an id
+      o.id = newId_();
+      const cell = sh.getRange(idx + 2, 1);
+      cell.setNumberFormat('@');
+      cell.setValue(o.id);
+    }
     out.push(o);
   });
-  if (fixed) range.setValues(values); // rows added by hand in Sheets get an id
   return out;
 }
 
