@@ -268,7 +268,7 @@ html.locked,html.locked body{overflow:hidden;overscroll-behavior:none;height:100
           if(body.action==='delete'&&has(body.id))throw new Error('not saved');
           return true});
       })
-      .catch(function(){items=snapshot;render();cache();toast('Could not save. Check your connection and try again.');return false})
+      .catch(function(e){items=snapshot;render();cache();toast('Could not save ('+(e&&e.message||'error')+'). Try again.');return false})
       .then(function(ok){pending--;if(ok){lastJson='';refresh()}return ok});
   }
   function addItem(doc){doc.id=newId();return mutate(function(){items.push(doc)},{action:'add',item:doc})}
