@@ -87,14 +87,6 @@ body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;bac
 .nd i{width:12px;height:12px;border-radius:50%;background:var(--c);box-shadow:0 0 0 4px color-mix(in srgb,var(--c) 24%,transparent)}
 .nd.pl{border-radius:50%;background:var(--bg);border:1.5px solid var(--c);color:var(--c)}
 .nd.pl svg{width:15px;height:15px;fill:currentColor}
-.tr.lay{padding-bottom:6px}
-.tr.lay .nd{margin-top:2px;height:20px}
-.tr.lay .nd i{width:6px;height:6px;box-shadow:none;background:var(--muted)}
-.tr.lay:first-child::before{top:12px}
-.tr.lay .lc{padding-top:3px;font-size:.84rem;color:var(--muted)}
-.tr.lay .lc b{color:var(--fg)}
-.lv{font-weight:700}
-.lv.good{color:var(--good)} .lv.warn{color:var(--warn)} .lv.long{color:var(--muted)}
 .ic{min-width:0}
 .item{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden}
 .ihead{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;background:none;border:0;padding:0 14px;min-height:48px;text-align:left}
@@ -348,12 +340,6 @@ html.locked,html.locked body{overflow:hidden;overscroll-behavior:none;height:100
       node,
       h('div',{class:'ic'},card));
   }
-  function layoverRow(f){
-    var m=Math.round(f._lay/60000),label,cls;
-    if(m<60){label='Tight';cls='warn'}else if(m<=240){label='Relaxed';cls='good'}else{label='Long wait';cls='long'}
-    return h('div',{class:'tr lay'},h('div',{class:'tm'}),h('div',{class:'nd'},h('i')),
-      h('div',{class:'lc'},h('b',{class:'num'},dur(f._lay)),' at '+f.from+' · ',h('span',{class:'lv '+cls},label)));
-  }
   function renderDays(){
     decorate();
     var main=document.getElementById('days');main.replaceChildren();
@@ -365,7 +351,7 @@ html.locked,html.locked body{overflow:hidden;overscroll-behavior:none;height:100
         body=h('div',{class:'empty'},!LIVE()?'Waiting for the Google Sheet connection.':(loaded?'Nothing here yet. Tap Add to start this day.':'Loading...'));
       }else{
         body=h('div',{class:'tl'});
-        list.forEach(function(i){if(i._lay)body.append(layoverRow(i));body.append(itemRow(i))});
+        list.forEach(function(i){body.append(itemRow(i))});
       }
       main.append(h('section',{class:'day',id:'day-'+d.id,'data-day':d.id},
         h('h2',{class:'dayhead'},d.long+', Nov '+d.n),
