@@ -89,15 +89,15 @@ body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;bac
 .nd.pl svg{width:15px;height:15px;fill:currentColor}
 .ic{min-width:0}
 .item{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden}
-.ihead{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;background:none;border:0;padding:0 14px;min-height:48px;text-align:left}
+.ihead{display:flex;align-items:flex-start;gap:10px;width:100%;background:none;border:0;padding:0 14px;min-height:48px;text-align:left}
 .itext{display:block;flex:1;min-width:0;padding:12px 0}
 .ititle{display:block;font-weight:700;font-size:1.02rem;overflow-wrap:anywhere}
 .fsub{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:6px;font-size:.88rem;color:var(--muted)}
 .ft{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
 .fsub sup{font-size:.62rem;margin-left:2px}
 .fi{font-style:normal;width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.14);display:grid;place-items:center;font-size:.7rem;line-height:1;color:var(--muted)}
-.chev{flex:none;width:18px;height:18px;color:var(--muted);transition:transform .2s}
-.item[data-open="1"] .chev{transform:rotate(180deg)}
+.chev{flex:none;width:18px;height:18px;margin-top:15px;color:var(--muted);transform:rotate(-90deg);transition:transform .2s}
+.item[data-open="1"] .chev{transform:rotate(0)}
 .item[data-open="0"] .det{display:none}
 .det{display:grid;gap:10px;padding:12px 14px 14px;border-top:1px solid var(--line)}
 .det .row{align-items:center}
@@ -110,7 +110,7 @@ body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;bac
 .links a{font-size:.82rem;font-weight:600;color:var(--c);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:5px 11px}
 .names{display:flex;flex-wrap:wrap;gap:6px}
 .nm{color:#fff;font-size:.8rem;font-weight:600;border-radius:999px;padding:4px 11px}
-.who{display:flex;flex:none;margin-left:auto;padding-left:8px}
+.who{display:flex;flex:none;padding-left:8px;margin-top:8px}
 .who .av{width:24px;height:24px;font-size:.66rem;border-color:var(--surface)}
 .fline{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center}
 .ap b{display:block;font-family:var(--display);font-size:1.5rem;line-height:1}
@@ -332,7 +332,7 @@ html.locked,html.locked body{overflow:hidden;overscroll-behavior:none;height:100
     var isF=i.area==='flight'&&i.from&&i.to,open=openId===i.id;
     var card=h('div',{class:'item','data-open':open?'1':'0'});
     var head=h('button',{type:'button',class:'ihead','aria-expanded':String(open),onclick:function(){toggle(card,head,i.id)}},
-      h('span',{class:'itext'},h('span',{class:'ititle'},i.title),isF?flightSub(i):null),whoRow(i.who),chevIcon());
+      chevIcon(),h('span',{class:'itext'},h('span',{class:'ititle'},i.title),isF?flightSub(i):null,whoRow(i.who)));
     card.append(head,details(i,isF));
     var node=isF?h('div',{class:'nd pl'},planeIcon()):h('div',{class:'nd'},h('i'));
     return h('div',{class:'tr',style:'--c:var('+(isF?'--a-flight':'--accent')+')'},
