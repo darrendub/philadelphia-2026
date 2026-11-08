@@ -96,11 +96,12 @@ body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;bac
 .ihead{display:block;width:100%;background:none;border:0;padding:12px 14px;min-height:48px;text-align:left}
 .itext{display:block;flex:1;min-width:0;padding:12px 0}
 .ititle{display:block;flex:1;min-width:0;font-weight:700;font-size:1.02rem;overflow-wrap:anywhere}
-.itr{display:flex;align-items:flex-start;gap:10px}
-.icap{display:flex;justify-content:space-between;align-items:center;gap:10px;padding-left:28px;margin-bottom:4px}
+.itr{display:block;padding-left:28px}
+.icap{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:4px}
 .icap.fl{align-items:flex-start}
 .icap .fsub{margin-top:0;flex:1;min-width:0}
-.icap .itime{margin-bottom:0}
+.icap .itime{margin-bottom:0;flex:1;min-width:0}
+.icap .chev{margin-top:0}
 .icap .who{margin-top:0}
 .fsub,.ft{font-weight:400}
 .itime{display:block;margin-bottom:3px;font-size:.78rem;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums;line-height:1.1}
@@ -628,10 +629,11 @@ html.locked,html.locked body{overflow:hidden;overscroll-behavior:none;height:100
     var isF=i.area==='flight'&&i.from&&i.to,open=openId===i.id;
     var card=h('div',{class:'item','data-open':open?'1':'0'});
     var cap=h('span',{class:'icap'+(isF?' fl':'')},
+      chevIcon(),
       isF?flightSub(i):h('span',{class:'itime'+(i.time?'':' any')},i.time?fmt(i.time):'Anytime'),
       whoRow(i.who));
     var head=h('button',{type:'button',class:'ihead','aria-expanded':String(open),onclick:function(){toggle(card,head,i.id)}},
-      cap,h('span',{class:'itr'},chevIcon(),h('span',{class:'ititle'},i.title)));
+      cap,h('span',{class:'itr'},h('span',{class:'ititle'},i.title)));
     card.append(head,details(i,isF));
     var node=isF?h('div',{class:'nd pl'},planeIcon()):h('div',{class:'nd'},h('i'));
     return h('div',{class:'tr'+(isPast(i)?' past':''),style:'--c:var('+(isF?'--a-flight':'--accent')+')'},
