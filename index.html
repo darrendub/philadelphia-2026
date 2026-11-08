@@ -113,6 +113,8 @@ body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;bac
 .links{display:flex;gap:8px;flex-wrap:wrap}
 .links a{font-size:.82rem;font-weight:600;color:var(--c);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:5px 11px}
 .names{display:flex;flex-wrap:wrap;gap:6px}
+.ev{display:inline-flex;align-items:center;height:24px;padding:0 11px;border-radius:999px;background:linear-gradient(90deg,var(--p1),var(--p5));color:#fff;font-size:.72rem;font-weight:700;letter-spacing:.01em;white-space:nowrap}
+.nm.ev-g{background:linear-gradient(90deg,var(--p1),var(--p5))}
 .nm{color:#fff;font-size:.8rem;font-weight:600;border-radius:999px;padding:4px 11px}
 .who{display:flex;flex:none;padding-left:8px;margin-top:8px}
 .who .av{width:24px;height:24px;font-size:.66rem;border-color:var(--surface)}
@@ -426,8 +428,10 @@ html.locked,html.locked body{overflow:hidden;overscroll-behavior:none;height:100
       h('span',{class:'ft'},h('i',{class:'fi'},'\u2197'),i.from+' '+fmt(i.time)),
       h('span',{class:'ft'},h('i',{class:'fi'},'\u2198'),i.to+' '+fmt(i.arrTime),plus));
   }
+  function allWho(list){return !!list&&PEOPLE.every(function(n){return list.indexOf(n)>=0})}
   function whoRow(list){
     if(!list||!list.length)return null;
+    if(allWho(list))return h('span',{class:'who',title:'Everyone'},h('span',{class:'ev'},'Everyone'));
     return h('span',{class:'who',title:list.join(', ')},list.map(function(n){var i=PEOPLE.indexOf(n);return i<0?null:avatar(n,i)}));
   }
   function toggle(card,head,id){
@@ -454,7 +458,8 @@ html.locked,html.locked body{overflow:hidden;overscroll-behavior:none;height:100
     if(i.notes)det.append(h('div',{class:'notes'},i.notes));
     var q=i.address||i.place;
     if(!isF&&q)det.append(h('div',{class:'links'},h('a',{href:mapsUrl(q),target:'_blank',rel:'noopener'},'Directions')));
-    if(i.who&&i.who.length)det.append(h('div',{class:'names'},i.who.map(function(n){var k=PEOPLE.indexOf(n);return k<0?null:h('span',{class:'nm',style:'background:'+PCOL[k]},n)})));
+    if(allWho(i.who))det.append(h('div',{class:'names'},h('span',{class:'nm ev-g'},'Everyone')));
+    else if(i.who&&i.who.length)det.append(h('div',{class:'names'},i.who.map(function(n){var k=PEOPLE.indexOf(n);return k<0?null:h('span',{class:'nm',style:'background:'+PCOL[k]},n)})));
     det.append(h('div',{class:'row'},h('button',{type:'button',class:'pill',onclick:function(){openSheet(i)}},'Edit')));
     return det;
   }
@@ -598,7 +603,7 @@ html.locked,html.locked body{overflow:hidden;overscroll-behavior:none;height:100
       h('div',{class:'sh'},
         h('div',{class:'hdt'},h('div',{class:'sfl'},i.flight+(dd?' • '+dd.dow.toUpperCase()+', '+dd.n+' NOV':'')),h('div',{class:'sttl'},i.title)),
         h('button',{type:'button',class:'nbtn','aria-label':'Close',onclick:close},svg('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>'))),
-      who.length?h('div',{class:'wh'},
+      allWho(who)?h('div',{class:'wh'},h('span',{class:'ev'},'Everyone')):who.length?h('div',{class:'wh'},
         h('span',{class:'wav'},who.map(function(n){return h('span',{class:'pav',style:'background:'+PCOL[PEOPLE.indexOf(n)]},n[0])})),
         h('span',{class:'wn'},who.join(', '))):null);
     var sheet=h('div',{class:'sheet2',role:'dialog','aria-label':'Flight status'},head,body);
