@@ -447,7 +447,7 @@ html.locked,html.locked body{overflow:hidden;overscroll-behavior:none;height:100
         h('a',{href:'#',onclick:function(e){e.preventDefault();openStatus(i)}},'Flight status'),
         h('a',{href:'#',onclick:function(e){e.preventDefault();shareText(fshare)}},'Share')));
     }else{
-      if(i.time)det.append(h('div',{class:'when'},fmt(i.time)+(i.endTime?' to '+fmt(i.endTime):'')));
+      if(i.endTime)det.append(h('div',{class:'when'},'Ends '+fmt(i.endTime)));
       var where=[i.place,i.address].filter(Boolean).join(' · ');
       if(where)det.append(h('div',{class:'place'},where));
     }
