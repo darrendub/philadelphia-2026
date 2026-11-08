@@ -458,8 +458,6 @@ html.locked,html.locked body{overflow:hidden;overscroll-behavior:none;height:100
     if(i.notes)det.append(h('div',{class:'notes'},i.notes));
     var q=i.address||i.place;
     if(!isF&&q)det.append(h('div',{class:'links'},h('a',{href:mapsUrl(q),target:'_blank',rel:'noopener'},'Directions')));
-    if(allWho(i.who))det.append(h('div',{class:'names'},h('span',{class:'nm ev-g'},'Everyone')));
-    else if(i.who&&i.who.length)det.append(h('div',{class:'names'},i.who.map(function(n){var k=PEOPLE.indexOf(n);return k<0?null:h('span',{class:'nm',style:'background:'+PCOL[k]},n)})));
     det.append(h('div',{class:'row'},h('button',{type:'button',class:'pill',onclick:function(){openSheet(i)}},'Edit')));
     return det;
   }
