@@ -32,7 +32,7 @@
   --a-flight:#6aa9ff; --a-food:#ffb454; --a-wedding:#f27aa8; --a-family:#5fd3a2; --a-logistics:#a99bff; --a-other:#8f98aa;
   --good:#5fd3a2; --warn:#ffb454; --danger:#ff7a7a;
   --bar:rgba(11,14,21,.62); --glass:rgba(255,255,255,.09); --glass-strong:rgba(30,35,46,.58); --glass-line:rgba(255,255,255,.12); --glass-hi:rgba(255,255,255,.26); --shadow:rgba(0,0,0,.45);
-  --p1:#4f7cff; --p2:#e0719a; --p3:#e5a13d; --p4:#3fb58c; --p5:#9b7be8; --p6:#d9694a; --p7:#3aa6c9;
+  --p1:#4f7cff; --p2:#e0719a; --p3:#e5a13d; --p4:#3fb58c; --p5:#9b7be8; --p6:#d9694a; --p7:#3aa6c9; --p8:#8fb83a;
   --display:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text',system-ui,sans-serif;
   --body:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display',system-ui,sans-serif;
   color-scheme:dark;
@@ -286,8 +286,8 @@ html.locked,html.locked body{overflow:hidden;overscroll-behavior:none;height:100
   var CL=(window.claude&&window.claude.use)?window.claude:null,dbh=null; // preview inside Claude uses its own store
   function LIVE(){return !!(API||dbh)}
   var CACHE_KEY='philly26-items-v1';
-  var PEOPLE=['Darren','Sophia','Rose','Maya','Emma','Scott','Gail'];
-  var PCOL=['var(--p1)','var(--p2)','var(--p3)','var(--p4)','var(--p5)','var(--p6)','var(--p7)'];
+  var PEOPLE=['Darren','Sophia','Rose','Maya','Emma','Scott','Gail','Alana'];
+  var PCOL=['var(--p1)','var(--p2)','var(--p3)','var(--p4)','var(--p5)','var(--p6)','var(--p7)','var(--p8)'];
   var DAYS=[
     {id:'2026-11-12',dow:'Thu',long:'Thursday',n:12,title:'Fly out'},
     {id:'2026-11-13',dow:'Fri',long:'Friday',n:13,title:'Arrive'},
