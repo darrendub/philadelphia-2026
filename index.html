@@ -438,7 +438,7 @@ html.locked,html.locked body{overflow:hidden;overscroll-behavior:none;height:100
       h('span',{class:'ft'},h('i',{class:'fi'},'\u2197'),i.from+' '+fmt(i.time)),
       h('span',{class:'ft'},h('i',{class:'fi'},'\u2198'),i.to+' '+fmt(i.arrTime),plus));
   }
-  function allWho(list){return !!list&&PEOPLE.every(function(n){return list.indexOf(n)>=0})}
+  function allWho(list){return !!list&&PEOPLE.slice(0,7).every(function(n){return list.indexOf(n)>=0})}
   function whoRow(list){
     if(!list||!list.length)return null;
     if(allWho(list))return h('span',{class:'who',title:'Everyone'},h('span',{class:'ev'},'Everyone'));
